@@ -84,12 +84,6 @@ BYTE rgbtoyuv( BYTE *getrgbframe , BYTE *getuyvyframe)
 		nxtvaluegreen = *(getrgbframe + i + 4);
 		nxtvalueblue = *(getrgbframe + i + 5);
 
-		/*yvalue = (WEIGHTEDRED * valuered) + (WEIGHTEDGREEN * valuegreen) + (WEIGHTEDBLUE * valueblue);
-		uvalue = UMAX * ((valuered - yvalue) / (1 - WEIGHTEDBLUE));
-		vvalue = VMAX * ((valuered - yvalue) / (1 - WEIGHTEDRED));
-		ynxtvalue = (WEIGHTEDRED * nxtvaluered) + (WEIGHTEDGREEN * nxtvaluegreen) + (WEIGHTEDBLUE * nxtvalueblue);
-		unxtvalue = UMAX * ((nxtvaluered - ynxtvalue) / (1 - WEIGHTEDBLUE));
-		vnxtvalue = VMAX * ((nxtvaluered - ynxtvalue) / (1 - WEIGHTEDRED));*/
 		yvalue = (0.257 * valuered) + (0.504 * valuegreen) + (0.098 * valueblue) + 16;
 		vvalue = (0.439 * valuered) - (0.368 * valuegreen) - (0.071 * valueblue) + 128;
 		uvalue = -(0.148 * valuered) - (0.291 * valuegreen) + (0.439 * valueblue) + 128;
