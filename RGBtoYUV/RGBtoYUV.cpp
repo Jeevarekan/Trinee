@@ -6,69 +6,106 @@
 #define WEIGHTEDBLUE	0.114
 #define UMAX		0.436
 #define VMAX		0.615
+#define RGBPERPIXEL 3
+#define YUVPERPIXEL 2
 
-/////////////////////////////////////
-// NAME       : rbgtoyuv()
-// USE        : Use to calculate value of y,u and v
-// PARAMETERS : float getvaluered , float getvaluegreen, float getvalueblue
-/////////////////////////////////////
-void rgbtoyuv( BYTE getvaluered, BYTE getvaluegreen, BYTE getvalueblue);
+int width = 640;
+int height = 480;
+
+BYTE rgbtoyuv(BYTE *getrgbframe, BYTE *getuyvyframe);
 
 int main()
 {
 	FILE *fptrread;
-	BYTE *ptrdatastore;
-	BYTE valuered;
-	BYTE valuegreen;
-	BYTE valueblue;
-	int height, length, size;
-	int bytesperpixel = 3;
-	int verifyreadfile;
-	printf("Enter the height:\n");
-	scanf("%d", &height);
-	printf("Enter the length:\n");
-	scanf("%d", &length);
-	size = height * length * bytesperpixel;
+	FILE *fptrwrite;
+	BYTE *rgbframe;
+	BYTE *uyvyframe;
 	fptrread = fopen("D:\\Jeeva\\RGBFrame.raw", "rb");
 	if (fptrread == NULL)
 	{
 		printf("File doesn't respond\n");
 		exit(1);
 	}
-	ptrdatastore = (BYTE*)malloc(size);
-	if (ptrdatastore == NULL)
+	rgbframe = (BYTE*)malloc(width * height * RGBPERPIXEL);
+	uyvyframe = (BYTE*)malloc(width * height * YUVPERPIXEL);
+	if (rgbframe == NULL)
 	{
 		printf("Memory is not allocated\n");
 		exit(1);
 	}
-	verifyreadfile = fread(ptrdatastore, 1, size, fptrread);
+	if (uyvyframe == NULL)
+	{
+		printf("Memory is not allocated\n");
+		exit(1);
+	}
+	int verifyreadfile = fread(rgbframe, 1, width * height * RGBPERPIXEL, fptrread);
 	fclose(fptrread);
-	if (verifyreadfile != size)
+	if (verifyreadfile != width * height * RGBPERPIXEL)
 	{
 		printf("Fread function return false value\n");
 	}
-	for (int i = 0; i < 3; i++)
+	rgbtoyuv(rgbframe, uyvyframe);
+	fptrwrite = fopen("D:\\Jeeva\\FilesTesting\\YUVfile.raw", "wb");
+	if (fptrwrite == NULL)
 	{
-		valuered = *(ptrdatastore + i);
-		i++;
-		valuegreen = *(ptrdatastore + i);
-		i++;
-		valueblue = *(ptrdatastore + i);
+		printf("File doesn't created\n");
+		exit(1);
 	}
-	rgbtoyuv(valuered,valuegreen,valueblue);
+	int verifywritefile= fwrite(uyvyframe, 1, width * height * YUVPERPIXEL, fptrwrite);
+	if (verifywritefile != width * height * YUVPERPIXEL)
+	{
+		printf("Fwrite function return false value\n");
+	}
+	fclose(fptrwrite);
 	return 0;
 }
 
-void rgbtoyuv( BYTE getvaluered , BYTE getvaluegreen, BYTE getvalueblue) 
+BYTE rgbtoyuv( BYTE *getrgbframe , BYTE *getuyvyframe) 
 {
+	int j = 0;
 	BYTE yvalue;
 	BYTE uvalue;
 	BYTE vvalue;
-	yvalue = (WEIGHTEDRED * getvaluered) + (WEIGHTEDGREEN * getvaluegreen) + (WEIGHTEDBLUE * getvalueblue);
-	uvalue = UMAX * ((getvaluered - yvalue) / (1 - WEIGHTEDBLUE));
-	vvalue = VMAX * ((getvaluered - yvalue) / (1 - WEIGHTEDRED));
-	printf("\n%d \n", yvalue);
-	printf("%d \n", uvalue);
-	printf("%d \n", vvalue);
+	BYTE ynxtvalue;
+	BYTE unxtvalue;
+	BYTE vnxtvalue;
+	BYTE valuered;
+	BYTE valuegreen;
+	BYTE valueblue;
+	BYTE nxtvaluered;
+	BYTE nxtvalueblue;
+	BYTE nxtvaluegreen;
+	for (int i = 0; i < (width * height * RGBPERPIXEL); i = i + 6)
+	{
+		valuered = *(getrgbframe + i);
+		valuegreen = *(getrgbframe + i + 1);
+		valueblue = *(getrgbframe + i + 2);
+		nxtvaluered = *(getrgbframe + i + 3);
+		nxtvaluegreen = *(getrgbframe + i + 4);
+		nxtvalueblue = *(getrgbframe + i + 5);
 
+		/*yvalue = (WEIGHTEDRED * valuered) + (WEIGHTEDGREEN * valuegreen) + (WEIGHTEDBLUE * valueblue);
+		uvalue = UMAX * ((valuered - yvalue) / (1 - WEIGHTEDBLUE));
+		vvalue = VMAX * ((valuered - yvalue) / (1 - WEIGHTEDRED));
+		ynxtvalue = (WEIGHTEDRED * nxtvaluered) + (WEIGHTEDGREEN * nxtvaluegreen) + (WEIGHTEDBLUE * nxtvalueblue);
+		unxtvalue = UMAX * ((nxtvaluered - ynxtvalue) / (1 - WEIGHTEDBLUE));
+		vnxtvalue = VMAX * ((nxtvaluered - ynxtvalue) / (1 - WEIGHTEDRED));*/
+		yvalue = (0.257 * valuered) + (0.504 * valuegreen) + (0.098 * valueblue) + 16;
+		vvalue = (0.439 * valuered) - (0.368 * valuegreen) - (0.071 * valueblue) + 128;
+		uvalue = -(0.148 * valuered) - (0.291 * valuegreen) + (0.439 * valueblue) + 128;
+
+		ynxtvalue = (0.257 * nxtvaluered) + (0.504 * nxtvaluegreen) + (0.098 * nxtvalueblue) + 16;
+		vnxtvalue = (0.439 * nxtvaluered) - (0.368 * nxtvaluegreen) - (0.071 * nxtvalueblue) + 128;
+		unxtvalue = -(0.148 * nxtvaluered) - (0.291 * nxtvaluegreen) + (0.439 * nxtvalueblue) + 128;
+
+		unxtvalue = (uvalue + unxtvalue) / 2;
+		vnxtvalue = (vvalue + vnxtvalue) / 2;
+		*(getuyvyframe + j) = unxtvalue;
+		*(getuyvyframe + j + 1) = yvalue;
+		*(getuyvyframe + j + 2) = vnxtvalue;
+		*(getuyvyframe + j + 3) = ynxtvalue;
+		j = j + 4;
+	}
+	return *getuyvyframe;
+		
 }
