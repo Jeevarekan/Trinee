@@ -5,7 +5,7 @@
 int width = 640;
 int height = 480;
 
-BYTE imagerotation(BYTE *getreadvalue, BYTE *getwritevalue);
+bool imagerotation(BYTE *getreadvalue, BYTE *getwritevalue);
 int main()
 {
 	FILE *fptrread;
@@ -21,7 +21,7 @@ int main()
 	int verifyreadfile = fread(ptrread, 1, width*height*YUVPERPIXEL,fptrread);
 	if (verifyreadfile != width * height * YUVPERPIXEL)
 	{
-		printf("Fread function returns false value\n");
+		printf("Fread function returned the value less than provided value\n");
 	}
 	fclose(fptrread);
 	ptrwrite = (BYTE*)malloc(width*height*YUVPERPIXEL);
@@ -29,7 +29,11 @@ int main()
 	{
 		printf("Memory allocation is failed\n");
 	}
-	imagerotation(ptrread,ptrwrite);
+	bool validate = imagerotation(ptrread,ptrwrite);
+	if (validate == false)
+	{
+		printf("Imagerotation function unvalid value\n ");
+	}
 	fptrwrite = fopen("D:\\Jeeva\\FilesTesting\\Rotatedfile.raw", "wb");
 	int verifywritefile = fwrite(ptrwrite, 1, width*height*YUVPERPIXEL, fptrwrite);
 	if (verifywritefile != width * height*YUVPERPIXEL)
@@ -39,37 +43,31 @@ int main()
 	fclose(fptrwrite);
 	return 0;
 }
-
-BYTE imagerotation(BYTE *getreadvalue, BYTE *getwritevalue)
+//////////////////////////////////////////////////////////
+//NAME       : imagerotation()
+//USE        : To rotate uyvy image into 90deg
+//Parameters : BYTE *getreadvalue, BYTE *getwritevalue
+/////////////////////////////////////////////////////////
+bool imagerotation(BYTE *getreadvalue, BYTE *getwritevalue)
 {
-	int i;
-	int j;
-	int subheight;
-	int subwidth;
+	int iloop;
+	int jloop, kcal=0;
+	int cal = 0;
 	int temp;
-	int size = width * height*YUVPERPIXEL;
+	int size = width * height * YUVPERPIXEL;
 	temp = width;
 	width = height;
 	height = temp;
-	BYTE copyvalue;
-	/*for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j++) {
-			*getwritevalue[i][j] = *getreadvalue[width - 1 - j][i];
+	for (iloop = 1 ; iloop <= height* YUVPERPIXEL; ++iloop)
+	{
+		cal = (size - height* YUVPERPIXEL) + iloop;
+		for (jloop =1; jloop <= width ; ++jloop)
+		{
+			*(getwritevalue + kcal) = *(getreadvalue + cal);
+			kcal++;
+			cal = cal - height* YUVPERPIXEL;
 		}
-	}*/
-	//for (i =0; i < height; i++)
-	//{
-	//	subwidth = width;
-	//	subheight = 0;
-	//	for (j = 0; j < width; j++)
-	//	{
-	//		*(getwritevalue + subheight ) = *(getreadvalue + subwidth);
-	//		subwidth--;
-	//		subheight++;
-	//	}
-	//	subwidth = subwidth * 2;
-	//}
-
+	}
 	return *getwritevalue;
 
 }
