@@ -51,23 +51,49 @@ int main()
 bool imagerotation(BYTE *getreadvalue, BYTE *getwritevalue)
 {
 	int iloop;
-	int jloop, kcal=0;
+	int jloop;
+	int ical = 1;
+	int jcal = 0;
+	int kcal = 0;
 	int cal = 0;
 	int temp;
 	int size = width * height * YUVPERPIXEL;
-	temp = width;
-	width = height;
-	height = temp;
-	for (iloop = 1 ; iloop <= height* YUVPERPIXEL; ++iloop)
+	BYTE yvalue;
+	BYTE ynxtvalue;
+	BYTE uvvalue;
+	BYTE uvalue;
+	BYTE vvalue;
+	int funwidth;
+	int funheight;
+	funwidth = height;
+	funheight = width;
+	for (iloop = 0; iloop < size; iloop = iloop + 4)
 	{
-		cal = (size - height* YUVPERPIXEL) + iloop;
-		for (jloop =1; jloop <= width ; ++jloop)
-		{
-			*(getwritevalue + kcal) = *(getreadvalue + cal);
-			kcal++;
-			cal = cal - height* YUVPERPIXEL;
-		}
+		uvalue = *(getreadvalue + iloop );
+		yvalue = *(getreadvalue + iloop + 1);
+		vvalue = *(getreadvalue + iloop + 2);
+		ynxtvalue = *(getreadvalue + iloop + 3);
 	}
-	return *getwritevalue;
 
+	for (iloop = 1; iloop <= funheight; iloop++)
+	{
+		cal = (size - funheight) + ical;
+		for (jloop = 0; jloop < funwidth*YUVPERPIXEL; jloop++)
+		{
+			uvvalue = *(getreadvalue + cal);
+			*(getwritevalue + jcal) = uvvalue;
+			cal++;
+			jcal++;
+			ynxtvalue = *(getreadvalue + cal);
+			*(getwritevalue + jcal) = yvalue;
+			cal = (cal - funheight) - 1;
+		}
+		ical=ical+2;
+	}
+
+	
+	return *getwritevalue;
 }
+
+	
+	
